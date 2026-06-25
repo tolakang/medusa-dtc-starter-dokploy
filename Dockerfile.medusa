@@ -1,11 +1,6 @@
-FROM node:20-alpine AS production
+FROM node:20-alpine AS builder
 
-ARG REDIS_URL=redis://redis:6379
-ENV REDIS_URL=${REDIS_URL}
-
-RUN apk add --no-cache postgresql-client
-
-WORKDIR /server
+WORKDIR /app
 
 RUN npm install pnpm@10.11.1 -g
 
@@ -16,8 +11,51 @@ RUN pnpm install --frozen-lockfile
 
 COPY apps/backend ./apps/backend
 
-RUN cd /server/apps/backend && pnpm build
+RUN cd /app/apps/backend && pnpm build
+
+FROM node:20-alpine AS production
+
+ARG REDIS_URL=redis://redis:6379
+ARG DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store
+ARG COOKIE_SECRET
+ARG JWT_SECRET
+ARG STORE_CORS
+ARG ADMIN_CORS
+ARG AUTH_CORS
+ARG BACKEND_URL
+ARG PORT=9000
+ARG DISABLE_ADMIN=false
+ARG WORKER_MODE=server
+
+ENV REDIS_URL=${REDIS_URL}
+ENV DATABASE_URL=${DATABASE_URL}
+ENV COOKIE_SECRET=${COOKIE_SECRET}
+ENV JWT_SECRET=${JWT_SECRET}
+ENV STORE_CORS=${STORE_CORS}
+ENV ADMIN_CORS=${ADMIN_CORS}
+ENV AUTH_CORS=${AUTH_CORS}
+ENV BACKEND_URL=${BACKEND_URL}
+ENV PORT=${PORT}
+ENV DISABLE_ADMIN=${DISABLE_ADMIN}
+ENV WORKER_MODE=${WORKER_MODE}
+
+RUN apk add --no-cache postgresql-client
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/backend/.medusa ./.medusa
+
+WORKDIR /app/.medusa/server
+
+RUN npm install pnpm@10.11.1 -g && pnpm install --prod --frozen-lockfile
+
+COPY migrations.sh /app/.medusa/server/migrations.sh
+RUN chmod +x /app/.medusa/server/migrations.sh
+
+RUN /app/.medusa/server/migrations.sh
+
+RUN rm /app/.medusa/server/migrations.sh
 
 EXPOSE 9000
 
-ENTRYPOINT ["./start.sh"]
+CMD ["pnpm", "start"]

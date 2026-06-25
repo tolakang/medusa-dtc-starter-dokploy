@@ -46,6 +46,16 @@ services:
       dockerfile: Dockerfile.medusa
       args:
         - REDIS_URL=redis://redis:6379
+        - DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store
+        - COOKIE_SECRET
+        - JWT_SECRET
+        - STORE_CORS
+        - ADMIN_CORS
+        - AUTH_CORS
+        - BACKEND_URL
+        - PORT=9000
+        - DISABLE_ADMIN=false
+        - WORKER_MODE=server
     container_name: medusa_backend
     restart: unless-stopped
     depends_on:
@@ -59,8 +69,15 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store
       - REDIS_URL=redis://redis:6379
-    env_file:
-      - apps/backend/.env
+      - COOKIE_SECRET
+      - JWT_SECRET
+      - STORE_CORS
+      - ADMIN_CORS
+      - AUTH_CORS
+      - BACKEND_URL
+      - PORT=9000
+      - DISABLE_ADMIN=false
+      - WORKER_MODE=server
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:9000/health"]
       interval: 30s
@@ -78,6 +95,7 @@ services:
       dockerfile: Dockerfile.storefront
       args:
         - REDIS_URL=redis://redis:6379
+        - NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://medusa:9000
     container_name: medusa_storefront
     restart: unless-stopped
     depends_on:
@@ -88,8 +106,7 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://medusa:9000
-    env_file:
-      - apps/storefront/.env
+      - REDIS_URL=redis://redis:6379
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000"]
       interval: 30s

@@ -1,22 +1,35 @@
-FROM node:20-alpine AS production
+FROM node:20-alpine AS builder
 
-ARG REDIS_URL=redis://redis:6379
-ENV REDIS_URL=${REDIS_URL}
-
-WORKDIR /server
+WORKDIR /app
 
 RUN npm install pnpm@10.11.1 -g
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 COPY apps/storefront/package.json ./apps/storefront/
-COPY apps/storefront/pnpm-workspace.yaml ./apps/storefront/
 
 RUN pnpm install --frozen-lockfile
 
 COPY apps/storefront ./apps/storefront
 
-RUN cd /server/apps/storefront && pnpm build
+RUN cd /app/apps/storefront && pnpm build
+
+FROM node:20-alpine AS production
+
+ARG REDIS_URL=redis://redis:6379
+ARG NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://medusa:9000
+
+ENV REDIS_URL=${REDIS_URL}
+ENV NEXT_PUBLIC_MEDUSA_BACKEND_URL=${NEXT_PUBLIC_MEDUSA_BACKEND_URL}
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/storefront/.next ./.next
+COPY --from=builder /app/apps/storefront/public ./public
+COPY --from=builder /app/apps/storefront/package.json ./package.json
+COPY --from=builder /app/apps/storefront/pnpm-lock.yaml ./pnpm-lock.yaml
+
+RUN npm install pnpm@10.11.1 -g && pnpm install --prod --frozen-lockfile
 
 EXPOSE 8000
 
-ENTRYPOINT ["./start-storefront.sh"]
+CMD ["pnpm", "start"]
