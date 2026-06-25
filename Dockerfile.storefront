@@ -11,7 +11,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 COPY apps/storefront/package.json ./apps/storefront/
 COPY apps/storefront/pnpm-workspace.yaml ./apps/storefront/
 
-RUN pnpm install --frozen-lockfile && pnpm approve-builds --auto
+RUN pnpm install --frozen-lockfile
 
 COPY apps/storefront ./apps/storefront
 
