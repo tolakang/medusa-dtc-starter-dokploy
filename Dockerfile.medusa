@@ -15,10 +15,9 @@ RUN cd /app/apps/backend && pnpm build
 
 FROM node:20-alpine AS production
 
+# Build-time ARGs (non-secrets needed for build)
 ARG REDIS_URL=redis://redis:6379
 ARG DATABASE_URL=postgres://postgres:postgres@postgres:5432/medusa-store
-ARG COOKIE_SECRET
-ARG JWT_SECRET
 ARG STORE_CORS
 ARG ADMIN_CORS
 ARG AUTH_CORS
@@ -27,10 +26,9 @@ ARG PORT=9000
 ARG DISABLE_ADMIN=false
 ARG WORKER_MODE=server
 
+# Build-time ENV (non-secrets)
 ENV REDIS_URL=${REDIS_URL}
 ENV DATABASE_URL=${DATABASE_URL}
-ENV COOKIE_SECRET=${COOKIE_SECRET}
-ENV JWT_SECRET=${JWT_SECRET}
 ENV STORE_CORS=${STORE_CORS}
 ENV ADMIN_CORS=${ADMIN_CORS}
 ENV AUTH_CORS=${AUTH_CORS}
