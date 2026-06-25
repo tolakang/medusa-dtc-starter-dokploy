@@ -41,7 +41,11 @@ services:
   # This service runs the Medusa backend application
   # and the admin dashboard.
   medusa:
-    build: Dockerfile.medusa
+    build:
+      context: .
+      dockerfile: Dockerfile.medusa
+      args:
+        - REDIS_URL=redis://redis:6379
     container_name: medusa_backend
     restart: unless-stopped
     depends_on:
@@ -69,7 +73,11 @@ services:
   # Storefront
   # This service runs the Next.js Starter Storefront
   storefront:
-    build: Dockerfile.storefront
+    build:
+      context: .
+      dockerfile: Dockerfile.storefront
+      args:
+        - REDIS_URL=redis://redis:6379
     container_name: medusa_storefront
     restart: unless-stopped
     depends_on:

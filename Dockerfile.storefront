@@ -1,5 +1,8 @@
 FROM node:20-alpine AS production
 
+ARG REDIS_URL=redis://redis:6379
+ENV REDIS_URL=${REDIS_URL}
+
 WORKDIR /server
 
 RUN npm install pnpm@10.11.1 -g
@@ -8,7 +11,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 COPY apps/storefront/package.json ./apps/storefront/
 COPY apps/storefront/pnpm-workspace.yaml ./apps/storefront/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile && pnpm approve-builds
 
 COPY apps/storefront ./apps/storefront
 

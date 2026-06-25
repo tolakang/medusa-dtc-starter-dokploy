@@ -1,5 +1,8 @@
 FROM node:20-alpine AS production
 
+ARG REDIS_URL=redis://redis:6379
+ENV REDIS_URL=${REDIS_URL}
+
 RUN apk add --no-cache postgresql-client
 
 WORKDIR /server
@@ -9,7 +12,7 @@ RUN npm install pnpm@10.11.1 -g
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .npmrc ./
 COPY apps/backend/package.json ./apps/backend/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile && pnpm approve-builds
 
 COPY apps/backend ./apps/backend
 
