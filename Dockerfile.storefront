@@ -12,6 +12,8 @@ RUN pnpm install --frozen-lockfile
 
 COPY apps/storefront ./apps/storefront
 
+RUN cd /server/apps/storefront && pnpm build
+
 EXPOSE 8000
 
 ENTRYPOINT ["./start-storefront.sh"]

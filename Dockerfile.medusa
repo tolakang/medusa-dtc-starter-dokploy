@@ -1,5 +1,7 @@
 FROM node:20-alpine AS production
 
+RUN apk add --no-cache postgresql-client
+
 WORKDIR /server
 
 RUN npm install pnpm@10.11.1 -g
@@ -10,6 +12,8 @@ COPY apps/backend/package.json ./apps/backend/
 RUN pnpm install --frozen-lockfile
 
 COPY apps/backend ./apps/backend
+
+RUN cd /server/apps/backend && pnpm build
 
 EXPOSE 9000
 
